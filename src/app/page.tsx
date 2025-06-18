@@ -21,7 +21,7 @@ export default function Home() {
   }
 
   useEffect(() => {
-    fetch('/viirs-india.csv')
+    fetch('/api/viirs')
       .then(res => res.text())
       .then(csvText => {
         Papa.parse(csvText, {
