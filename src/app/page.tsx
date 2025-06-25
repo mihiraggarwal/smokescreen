@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import dynamic from 'next/dynamic'
 import Papa from 'papaparse'
+import { toast } from 'react-hot-toast'
 
 const MapContainer = dynamic(() => import('react-leaflet').then(mod => mod.MapContainer), { ssr: false })
 const TileLayer = dynamic(() => import('react-leaflet').then(mod => mod.TileLayer), { ssr: false })
@@ -11,11 +12,12 @@ const Tooltip = dynamic(() => import('react-leaflet').then(mod => mod.Tooltip), 
 
 export default function Home() {
   const [firePoints, setFirePoints] = useState<any[]>([])
-  // const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(true)
   const [pinLs, setPinLs] = useState<{[key: number]: [number, number]}>({})
   const [index, setIndex] = useState(0)
   const [center, setCenter] = useState<[number, number]>([28.6, 77.2])
   const [zoom, setZoom] = useState(5)
+  const [aqi, setAqi] = useState<number>(0)
 
   type csv = {
     latitude: string;
@@ -67,6 +69,19 @@ export default function Home() {
       })
   }, [])
 
+  useEffect(() => {
+    if (index === 0) return;
+    fetch(`/api/aqi/?lat=${center[0]}&lon=${center[1]}`)
+      .then(res => res.text())
+      .then(data => {
+        setAqi(parseFloat(data) || 0)
+        setLoading(false)
+      })
+      .catch(err => {
+        console.error("Error fetching AQI data:", err)
+      })
+  }, [center])
+
   const computeRadius = (frpStr: string) => {
     const frp = parseFloat(frpStr)
     if (isNaN(frp)) return 2
@@ -89,23 +104,45 @@ export default function Home() {
           🔥
         </button> */}
       </div>
-      <input className="absolute bottom-4 left-1/2 transform -translate-x-1/2 w-1/2 z-[1000] bg-white text-black p-2 rounded shadow-md"
-        placeholder='Enter Pincode'
-        onChange={(e) => {
-          const pin = e.target.value;
-          if (pin.length === 6) {
-            console.log("hitting this")
-            console.log(pinLs[parseFloat(pin)])
-            setCenter(pinLs[parseFloat(pin)])
-            setZoom(12);
-            setIndex(1);
-          }
-          else if (pin.length === 0) {
-            setIndex(0);
+      <div className='absolute flex flex-col gap-4 bottom-4 left-1/2 transform -translate-x-1/2 w-1/2 z-[1000]'>
+        {index === 1 && (
+          <div className='flex flex-row w-full gap-2 justify-between text-black'>
+            <div className='flex flex-col grow-1 px-2 py-4 bg-white rounded shadow-md items-center justify-between'>
+              <p className='text-5xl pb-5 pt-6'>{loading ? "..." : aqi}</p>
+              <p className='text-md'>AQI</p>
+            </div>
+            <div className='flex flex-col grow-1 px-2 py-4 bg-white rounded shadow-md items-center justify-between'>
+              <p className='text-5xl pb-5 pt-6'>10%</p>
+              <p className='text-md'>Fire Risk</p>
+            </div>
+            <div className='flex flex-col grow-5 px-2 py-4 bg-white rounded shadow-md items-center justify-between'>
+              <p>AI Insight</p>
+              <p>AI Insight</p>
+            </div>
+          </div>
+        )}
+        <input className="w-full bg-white text-black p-2 rounded shadow-md"
+          placeholder='Enter Pincode'
+          onChange={(e) => {
+            const pin = e.target.value;
+            if (pin.length === 6) {
+              if (!pinLs[parseFloat(pin)]) {
+                toast.error('Invalid Pincode');
+                return;
+              }
+              setLoading(true);
+              setIndex(1);
+              setCenter(pinLs[parseFloat(pin)])
+              setZoom(12);
+            }
+            else {
+              setIndex(0);
+              setCenter([28.6, 77.2]);
+            }
           }
         }
-      }
-      ></input>
+        ></input>
+      </div>
       {(index == 0) && (
         <MapContainer center={[28.6, 77.2]} zoom={5} style={{ height: '100%', width: '100%' }}>
           <TileLayer
@@ -127,20 +164,6 @@ export default function Home() {
       )}
       {(index == 1) && (
         <>
-          {/* <input className="absolute bottom-4 left-1/2 transform -translate-x-1/2 w-1/2 z-[1000] bg-white text-black p-2 rounded shadow-md"
-            placeholder='Enter Pincode'
-            onChange={(e) => {
-              const pin = e.target.value;
-              if (pin.length === 6) {
-                console.log("hitting this")
-                console.log(pinLs[parseFloat(pin)])
-                setCenter(pinLs[parseFloat(pin)])
-                setZoom(12);
-                
-              } 
-            }
-          }
-          ></input> */}
           <MapContainer center={center} zoom={zoom} style={{ height: '100%', width: '100%' }}>
             <TileLayer
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
