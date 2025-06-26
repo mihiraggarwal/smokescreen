@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import dynamic from 'next/dynamic'
 import Papa from 'papaparse'
 import { toast } from 'react-hot-toast'
+import 'dotenv/config'
 
 const MapContainer = dynamic(() => import('react-leaflet').then(mod => mod.MapContainer), { ssr: false })
 const TileLayer = dynamic(() => import('react-leaflet').then(mod => mod.TileLayer), { ssr: false })
@@ -18,6 +19,7 @@ export default function Home() {
   const [center, setCenter] = useState<[number, number]>([28.6, 77.2])
   const [zoom, setZoom] = useState(5)
   const [aqi, setAqi] = useState<number>(0)
+  const [fireProbability, setFireProbability] = useState<number>(0)
 
   type csv = {
     latitude: string;
@@ -75,10 +77,31 @@ export default function Home() {
       .then(res => res.text())
       .then(data => {
         setAqi(parseFloat(data) || 0)
-        setLoading(false)
       })
       .catch(err => {
         console.error("Error fetching AQI data:", err)
+      })
+      .then(() => {
+        fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/predict`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            latitude: center[0],
+            longitude: center[1],
+            night: new Date().getHours() < 6 || new Date().getHours() > 18 ? 1 : 0,
+            month: new Date().getMonth() + 1,
+            day: new Date().getDate(),
+          })
+        })
+          .then(res => res.json())
+          .then(data => {
+            if (data && data.fire_probability) {
+              setFireProbability(Math.round(parseFloat(data.fire_probability)*100));
+              setLoading(false);
+            }
+          })
       })
   }, [center])
 
@@ -112,7 +135,7 @@ export default function Home() {
               <p className='text-md'>AQI</p>
             </div>
             <div className='flex flex-col grow-1 px-2 py-4 bg-white rounded shadow-md items-center justify-between'>
-              <p className='text-5xl pb-5 pt-6'>10%</p>
+              <p className='text-5xl pb-5 pt-6'>{loading ? "..." : fireProbability}%</p>
               <p className='text-md'>Fire Risk</p>
             </div>
             <div className='flex flex-col grow-5 px-2 py-4 bg-white rounded shadow-md items-center justify-between'>
