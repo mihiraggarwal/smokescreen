@@ -13,13 +13,16 @@ const Tooltip = dynamic(() => import('react-leaflet').then(mod => mod.Tooltip), 
 
 export default function Home() {
   const [firePoints, setFirePoints] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
+  const [loadingAQI, setLoadingAQI] = useState(true)
+  const [loadingRisk, setLoadingRisk] = useState(true)
+  const [loadingFires, setLoadingFires] = useState(true)
   const [pinLs, setPinLs] = useState<{[key: number]: [number, number]}>({})
   const [index, setIndex] = useState(0)
   const [center, setCenter] = useState<[number, number]>([28.6, 77.2])
   const [zoom, setZoom] = useState(5)
   const [aqi, setAqi] = useState<number>(0)
   const [fireProbability, setFireProbability] = useState<number>(0)
+  const [nearbyFires, setNearbyFires] = useState<number>(0)
 
   type csv = {
     latitude: string;
@@ -73,36 +76,50 @@ export default function Home() {
 
   useEffect(() => {
     if (index === 0) return;
+
     fetch(`/api/aqi/?lat=${center[0]}&lon=${center[1]}`)
       .then(res => res.text())
       .then(data => {
         setAqi(parseFloat(data) || 0)
+        setLoadingAQI(false);
       })
       .catch(err => {
         console.error("Error fetching AQI data:", err)
       })
-      .then(() => {
-        fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/predict`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            latitude: center[0],
-            longitude: center[1],
-            night: new Date().getHours() < 6 || new Date().getHours() > 18 ? 1 : 0,
-            month: new Date().getMonth() + 1,
-            day: new Date().getDate(),
-          })
-        })
-          .then(res => res.json())
-          .then(data => {
-            if (data && data.fire_probability) {
-              setFireProbability(Math.round(parseFloat(data.fire_probability)*100));
-              setLoading(false);
-            }
-          })
+    
+    fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/predict`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        latitude: center[0],
+        longitude: center[1],
+        night: new Date().getHours() < 6 || new Date().getHours() > 18 ? 1 : 0,
+        month: new Date().getMonth() + 1,
+        day: new Date().getDate(),
       })
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.fire_probability) {
+          setFireProbability(Math.round(parseFloat(data.fire_probability)*100));
+          setLoadingRisk(false);
+        }
+      })
+
+    let count = 0;
+    for (let i = 0; i < firePoints.length; i++) {
+      const point = firePoints[i];
+      const lat = parseFloat(point.latitude);
+      const lon = parseFloat(point.longitude);
+      const distance = Math.sqrt(Math.pow(lat - center[0], 2) + Math.pow(lon - center[1], 2));
+      if (distance < 0.2) { // ~20 km radius
+        count++;
+      }
+    }
+    setNearbyFires(count);
+    setLoadingFires(false);
   }, [center])
 
   const computeRadius = (frpStr: string) => {
@@ -131,16 +148,16 @@ export default function Home() {
         {index === 1 && (
           <div className='flex flex-row w-full gap-2 justify-between text-black'>
             <div className='flex flex-col grow-1 px-2 py-4 bg-white rounded shadow-md items-center justify-between'>
-              <p className='text-5xl pb-5 pt-6'>{loading ? "..." : aqi}</p>
+              <p className='text-5xl pb-5 pt-6'>{loadingAQI ? "..." : aqi}</p>
               <p className='text-md'>AQI</p>
             </div>
             <div className='flex flex-col grow-1 px-2 py-4 bg-white rounded shadow-md items-center justify-between'>
-              <p className='text-5xl pb-5 pt-6'>{loading ? "..." : fireProbability}%</p>
+              <p className='text-5xl pb-5 pt-6'>{loadingRisk ? "..." : fireProbability}%</p>
               <p className='text-md'>Fire Risk</p>
             </div>
-            <div className='flex flex-col grow-5 px-2 py-4 bg-white rounded shadow-md items-center justify-between'>
-              <p>AI Insight</p>
-              <p>AI Insight</p>
+            <div className='flex flex-col grow-1 px-2 py-4 bg-white rounded shadow-md items-center justify-between'>
+              <p className='text-5xl pb-5 pt-6'>{loadingFires ? "..." : nearbyFires}</p>
+              <p className='text-md'>Nearby Fires</p>
             </div>
           </div>
         )}
@@ -153,7 +170,9 @@ export default function Home() {
                 toast.error('Invalid Pincode');
                 return;
               }
-              setLoading(true);
+              setLoadingAQI(true);
+              setLoadingFires(true);
+              setLoadingRisk(true);
               setIndex(1);
               setCenter(pinLs[parseFloat(pin)])
               setZoom(12);
@@ -179,7 +198,7 @@ export default function Home() {
               pathOptions={{ stroke: false, fillColor: 'red', fillOpacity: 0.4 }}
             >
               <Tooltip>
-                <span>Date: {point.acq_date}<br />Time: {String(Math.floor(point.acq_time / 100)).padStart(2, '0')}:{String(point.acq_time % 100).padStart(2, '0')}<br />Fire Radiative Power: {point.frp || 'N/A'}</span>
+                <span className='text-base'>Date: {point.acq_date}<br />Time: {String(Math.floor(point.acq_time / 100)).padStart(2, '0')}:{String(point.acq_time % 100).padStart(2, '0')}<br />Fire Radiative Power: {point.frp || 'N/A'}</span>
               </Tooltip>
             </CircleMarker>
           ))}
