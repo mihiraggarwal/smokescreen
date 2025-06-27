@@ -224,9 +224,9 @@ export default function Home() {
               setLoadingAQI(true);
               setLoadingFires(true);
               setLoadingRisk(true);
-              setIndex(1);
               setCenter(pinLs[parseFloat(pin)])
               setZoom(12);
+              setIndex(1);
             }
             else {
               setIndex(0);
@@ -278,7 +278,7 @@ export default function Home() {
             ))}
           </MapContainer>
 
-          <Dashboard aqi={aqi} risk={fireProbability} nearestFireDistance={nearestFireDistance} nearestFireDirection={nearestFireDirection} lastFireDaysAgo={lastFireDaysAgo} windSpeed={windSpeed} windDirection={windDirection} />
+          <Dashboard aqi={aqi} risk={fireProbability} nearestFireDistance={nearestFireDistance} nearestFireDirection={nearestFireDirection} lastFireDaysAgo={lastFireDaysAgo} windSpeed={windSpeed} windDirection={windDirection} latitude={center[0]} longitude={center[1]} />
         </>
       )}
     </div>

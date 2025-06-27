@@ -1,6 +1,11 @@
 'use client'
 
-export default function Dashboard({aqi, risk, nearestFireDistance, nearestFireDirection, lastFireDaysAgo, windSpeed, windDirection}: {aqi: number, risk: number, nearestFireDistance: number, nearestFireDirection: string, lastFireDaysAgo: number, windSpeed: number, windDirection: string}) {
+import { useState } from "react";
+
+export default function Dashboard({aqi, risk, nearestFireDistance, nearestFireDirection, lastFireDaysAgo, windSpeed, windDirection, latitude, longitude}: {aqi: number, risk: number, nearestFireDistance: number, nearestFireDirection: string, lastFireDaysAgo: number, windSpeed: number, windDirection: string, latitude: number, longitude: number}) {
+
+    const [input, setInput] = useState("");
+    const [messages, setMessages] = useState<{ role: string, content: string }[]>([]);
 
     const aqiColors: { [key: number]: string } = {
         0: "text-green-500",
@@ -52,8 +57,39 @@ export default function Dashboard({aqi, risk, nearestFireDistance, nearestFireDi
         }
     }
 
+    async function submit() {
+
+        setMessages([...messages, { role: 'user', content: input }]);
+        setInput("");
+
+        const res = await fetch('/api/chat', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                messages: [...messages,
+                    { role: 'user', content: input }
+                ],
+                aqi: aqi,
+                risk: risk,
+                nearestFireDistance: nearestFireDistance,
+                nearestFireDirection: nearestFireDirection,
+                windSpeed: windSpeed,
+                windDirection: windDirection,
+                latitude: latitude,
+                longitude: longitude
+            })
+        })
+
+        const data = await res.json();
+        const reply = data.reply;
+
+        setMessages([...messages, { role: 'user', content: input }, { role: 'model', content: reply }]);
+    }
+
   return (
-    <div className="z-[999] flex flex-col justify-between h-5/6 w-full absolute gap-2 top-0 right-0 p-2 rounded text-black">
+    <div className="z-[999] flex flex-col justify-between h-11/12 max-h-11/12 w-full absolute top-0 right-0 p-2 rounded text-black">
       <div className="max-w-7xl mx-auto">
         {/* Grid for cards */}
         <div className="grid gap-6 sm:grid-cols-4 lg:grid-cols-5 mb-8">
@@ -127,20 +163,40 @@ export default function Dashboard({aqi, risk, nearestFireDistance, nearestFireDi
             <p className="text-gray-700">Past 3 days: 98 → 125 → 156</p>
           </div> */}
         </div>
-    </div>
+      </div>
 
-    <div className="max-w-7xl w-full h-full mx-auto">
+      <div className="max-w-7xl mx-auto overflow-y-auto">
         {/* Chatbot section */}
-        <div className="bg-white shadow-lg h-full rounded-xl p-5 overflow-y-auto">
-          <h3 className="text-lg font-semibold mb-3">Chat with FireSense 🤖</h3>
-          <div className="text-sm text-gray-700 mb-2">You can ask questions like:</div>
-          <ul className="text-sm list-disc list-inside text-gray-600">
-            <li>What is AQI?</li>
-            <li>Why is the fire risk high?</li>
-            <li>Should I stay indoors today?</li>
-            <li>How far is the nearest fire?</li>
-          </ul>
-          {/* Add chatbot component or input box below */}
+        <div className="bg-white shadow-lg rounded-xl p-5 flex flex-col justify-between gap-2 h-full">
+
+            {messages.length == 0 && (
+                <div className="flex flex-col">
+                    <h3 className="text-lg font-semibold mb-3">Chat with SmokeScreen</h3>
+                    <div className="text-sm text-gray-700 mb-2">You can ask questions like:</div>
+                    <ul className="text-sm list-disc list-inside text-gray-600">
+                        <li>What is AQI?</li>
+                        <li>Should I stay indoors today?</li>
+                        <li>How far is the nearest fire?</li>
+                        <li>What could be causing this AQI?</li>
+                    </ul>
+                </div>
+            )}
+
+            {messages.length > 0 && (
+                <div className="flex flex-col gap-4 overflow-y-scroll max-h-10/12 pr-2">
+                    {messages.map((message, index) => (
+                        <div key={index} className={`p-3 max-w-3/4 rounded-lg ${message.role === 'user' ? 'bg-blue-100 self-end' : 'bg-gray-100 self-start'}`}>
+                            <p className="text-sm">{message.content}</p>
+                        </div>
+                    ))}
+                </div>
+            )}
+
+            <div className="flex flex-row gap-4">
+                <input type="text" placeholder="Type your question here..." className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500" value={input} onChange={(e) => setInput(e.target.value)} />
+                <button className="px-4 py-2 bg-blue-500 text-white rounded hover:cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500" onClick={submit}>Send</button>
+            </div>
+
         </div>
       </div>
     </div>
