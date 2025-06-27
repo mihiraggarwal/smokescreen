@@ -6,6 +6,8 @@ import Papa from 'papaparse'
 import { toast } from 'react-hot-toast'
 import 'dotenv/config'
 
+import Dashboard from './_components/dash'
+
 const MapContainer = dynamic(() => import('react-leaflet').then(mod => mod.MapContainer), { ssr: false })
 const TileLayer = dynamic(() => import('react-leaflet').then(mod => mod.TileLayer), { ssr: false })
 const CircleMarker = dynamic(() => import('react-leaflet').then(mod => mod.CircleMarker), { ssr: false })
@@ -22,7 +24,12 @@ export default function Home() {
   const [zoom, setZoom] = useState(5)
   const [aqi, setAqi] = useState<number>(0)
   const [fireProbability, setFireProbability] = useState<number>(0)
-  const [nearbyFires, setNearbyFires] = useState<number>(0)
+  // const [nearbyFires, setNearbyFires] = useState<number>(0)
+  const [nearestFireDistance, setNearestFireDistance] = useState<number>(Infinity)
+  const [nearestFireDirection, setNearestFireDirection] = useState<string>('')
+  const [lastFireDaysAgo, setLastFireDaysAgo] = useState<number>(0)
+  const [windSpeed, setWindSpeed] = useState<number>(0)
+  const [windDirection, setWindDirection] = useState<string>('')
 
   type csv = {
     latitude: string;
@@ -30,6 +37,24 @@ export default function Home() {
     acq_date: string;
     confidence: string;
     [key: string]: string;
+  }
+
+  function getCompassDirection(lat1: number, lon1: number, lat2: number, lon2: number): string {
+    const toRadians = (deg: number) => deg * (Math.PI / 180);
+    const toDegrees = (rad: number) => rad * (180 / Math.PI);
+
+    const dLon = toRadians(lon2 - lon1);
+    const y = Math.sin(dLon) * Math.cos(toRadians(lat2));
+    const x =
+      Math.cos(toRadians(lat1)) * Math.sin(toRadians(lat2)) -
+      Math.sin(toRadians(lat1)) * Math.cos(toRadians(lat2)) * Math.cos(dLon);
+
+    let brng = toDegrees(Math.atan2(y, x));
+    brng = (brng + 360) % 360; // Normalize to 0–360
+
+    const directions = ['North', 'North-East', 'East', 'South-East', 'South', 'South-West', 'West', 'North-West'];
+    const index = Math.round(brng / 45) % 8;
+    return directions[index];
   }
 
   useEffect(() => {
@@ -106,19 +131,44 @@ export default function Home() {
           setFireProbability(Math.round(parseFloat(data.fire_probability)*100));
           setLoadingRisk(false);
         }
+        if (data && data.wind_speed) {
+          setWindSpeed(data.wind_speed);
+        }
+        if (data && data.wind_direction) {
+          const directions = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+          const index = Math.round(data.wind_direction / 45) % 8;
+          setWindDirection(directions[index]);
+        }
       })
 
-    let count = 0;
+    fetch(`/api/viirs/past?lat=${center[0]}&lon=${center[1]}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.data !== undefined) {
+          setLastFireDaysAgo(data.data);
+        } else {
+          setLastFireDaysAgo(8); // Default to 8 days if no data found
+        }
+      })
+
+    // let count = 0;
+    let minDist = Infinity;
+    let direction;
     for (let i = 0; i < firePoints.length; i++) {
       const point = firePoints[i];
       const lat = parseFloat(point.latitude);
       const lon = parseFloat(point.longitude);
-      const distance = Math.sqrt(Math.pow(lat - center[0], 2) + Math.pow(lon - center[1], 2));
-      if (distance < 0.2) { // ~20 km radius
-        count++;
+      let distance = Math.sqrt(Math.pow(lat - center[0], 2) + Math.pow(lon - center[1], 2));
+      distance = distance * 111.32; // Convert to km (approximate conversion)
+      
+      if (distance < minDist) {
+        minDist = distance;
+        direction = getCompassDirection(center[0], center[1], lat, lon);
       }
     }
-    setNearbyFires(count);
+    // setNearbyFires(count);
+    setNearestFireDistance(minDist);
+    setNearestFireDirection(direction!);
     setLoadingFires(false);
   }, [center])
 
@@ -145,13 +195,14 @@ export default function Home() {
         </button> */}
       </div>
       <div className='absolute flex flex-col gap-4 bottom-4 left-1/2 transform -translate-x-1/2 w-1/2 z-[1000]'>
-        {index === 1 && (
+        {/* {index === 1 && (
           <div className='flex flex-row w-full gap-2 justify-between text-black'>
             <div className='flex flex-col grow-1 px-2 py-4 bg-white rounded shadow-md items-center justify-between'>
               <p className='text-5xl pb-5 pt-6'>{loadingAQI ? "..." : aqi}</p>
               <p className='text-md'>AQI</p>
             </div>
             <div className='flex flex-col grow-1 px-2 py-4 bg-white rounded shadow-md items-center justify-between'>
+              <p className='relative w-full text-right pr-4 text-sm text-gray-500'>Predicted using AI</p>
               <p className='text-5xl pb-5 pt-6'>{loadingRisk ? "..." : fireProbability}%</p>
               <p className='text-md'>Fire Risk</p>
             </div>
@@ -160,7 +211,7 @@ export default function Home() {
               <p className='text-md'>Nearby Fires</p>
             </div>
           </div>
-        )}
+        )} */}
         <input className="w-full bg-white text-black p-2 rounded shadow-md"
           placeholder='Enter Pincode'
           onChange={(e) => {
@@ -186,23 +237,26 @@ export default function Home() {
         ></input>
       </div>
       {(index == 0) && (
-        <MapContainer center={[28.6, 77.2]} zoom={5} style={{ height: '100%', width: '100%' }}>
-          <TileLayer
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
-          {firePoints.map((point: any, idx: number) => (
-            <CircleMarker
-              key={idx}
-              center={[parseFloat(point.latitude), parseFloat(point.longitude)]}
-              radius={computeRadius(point.frp)}
-              pathOptions={{ stroke: false, fillColor: 'red', fillOpacity: 0.4 }}
-            >
-              <Tooltip>
-                <span className='text-base'>Date: {point.acq_date}<br />Time: {String(Math.floor(point.acq_time / 100)).padStart(2, '0')}:{String(point.acq_time % 100).padStart(2, '0')}<br />Fire Radiative Power: {point.frp || 'N/A'}</span>
-              </Tooltip>
-            </CircleMarker>
-          ))}
-      </MapContainer>
+        <>
+          <MapContainer center={[28.6, 77.2]} zoom={5} style={{ height: '100%', width: '100%' }}>
+            <TileLayer
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
+            {firePoints.map((point: any, idx: number) => (
+              <CircleMarker
+                key={idx}
+                center={[parseFloat(point.latitude), parseFloat(point.longitude)]}
+                radius={computeRadius(point.frp)}
+                pathOptions={{ stroke: false, fillColor: 'red', fillOpacity: 0.4 }}
+              >
+                <Tooltip>
+                  <span className='text-base'>Date: {point.acq_date}<br />Time: {String(Math.floor(point.acq_time / 100)).padStart(2, '0')}:{String(point.acq_time % 100).padStart(2, '0')}<br />Fire Radiative Power: {point.frp || 'N/A'}</span>
+                </Tooltip>
+              </CircleMarker>
+            ))}
+          </MapContainer>
+          
+        </>
       )}
       {(index == 1) && (
         <>
@@ -223,6 +277,8 @@ export default function Home() {
               </CircleMarker>
             ))}
           </MapContainer>
+
+          <Dashboard aqi={aqi} risk={fireProbability} nearestFireDistance={nearestFireDistance} nearestFireDirection={nearestFireDirection} lastFireDaysAgo={lastFireDaysAgo} windSpeed={windSpeed} windDirection={windDirection} />
         </>
       )}
     </div>
