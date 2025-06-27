@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic'
 import Papa from 'papaparse'
 import { toast } from 'react-hot-toast'
 import 'dotenv/config'
+import AppsIcon from '@mui/icons-material/Apps';
 
 import Dashboard from './_components/dash'
 
@@ -18,18 +19,20 @@ export default function Home() {
   const [loadingAQI, setLoadingAQI] = useState(true)
   const [loadingRisk, setLoadingRisk] = useState(true)
   const [loadingFires, setLoadingFires] = useState(true)
+  const [loadingLastFire, setLoadingLastFire] = useState(true)
+  const [loadingWind, setLoadingWind] = useState(true)
   const [pinLs, setPinLs] = useState<{[key: number]: [number, number]}>({})
   const [index, setIndex] = useState(0)
   const [center, setCenter] = useState<[number, number]>([28.6, 77.2])
   const [zoom, setZoom] = useState(5)
   const [aqi, setAqi] = useState<number>(0)
   const [fireProbability, setFireProbability] = useState<number>(0)
-  // const [nearbyFires, setNearbyFires] = useState<number>(0)
   const [nearestFireDistance, setNearestFireDistance] = useState<number>(Infinity)
   const [nearestFireDirection, setNearestFireDirection] = useState<string>('')
   const [lastFireDaysAgo, setLastFireDaysAgo] = useState<number>(0)
   const [windSpeed, setWindSpeed] = useState<number>(0)
   const [windDirection, setWindDirection] = useState<string>('')
+  const [dashboardVisible, setDashboardVisible] = useState(true)
 
   type csv = {
     latitude: string;
@@ -139,6 +142,7 @@ export default function Home() {
           const index = Math.round(data.wind_direction / 45) % 8;
           setWindDirection(directions[index]);
         }
+        setLoadingWind(false);
       })
 
     fetch(`/api/viirs/past?lat=${center[0]}&lon=${center[1]}`)
@@ -149,6 +153,7 @@ export default function Home() {
         } else {
           setLastFireDaysAgo(8); // Default to 8 days if no data found
         }
+        setLoadingLastFire(false);
       })
 
     // let count = 0;
@@ -166,7 +171,6 @@ export default function Home() {
         direction = getCompassDirection(center[0], center[1], lat, lon);
       }
     }
-    // setNearbyFires(count);
     setNearestFireDistance(minDist);
     setNearestFireDirection(direction!);
     setLoadingFires(false);
@@ -194,24 +198,17 @@ export default function Home() {
           🔥
         </button> */}
       </div>
+      {(index === 1) && (
+        <div className="absolute bottom-4 right-4 z-[1000] flex flex-col gap-2 bg-white rounded-full shadow-md">
+          <button
+            className='bg-blue-500 text-white rounded-full px-4 py-2 hover:cursor-pointer'
+            onClick={() => {setDashboardVisible(!dashboardVisible)}}
+          >
+            <AppsIcon />
+          </button>
+        </div>
+      )}
       <div className='absolute flex flex-col gap-4 bottom-4 left-1/2 transform -translate-x-1/2 w-1/2 z-[1000]'>
-        {/* {index === 1 && (
-          <div className='flex flex-row w-full gap-2 justify-between text-black'>
-            <div className='flex flex-col grow-1 px-2 py-4 bg-white rounded shadow-md items-center justify-between'>
-              <p className='text-5xl pb-5 pt-6'>{loadingAQI ? "..." : aqi}</p>
-              <p className='text-md'>AQI</p>
-            </div>
-            <div className='flex flex-col grow-1 px-2 py-4 bg-white rounded shadow-md items-center justify-between'>
-              <p className='relative w-full text-right pr-4 text-sm text-gray-500'>Predicted using AI</p>
-              <p className='text-5xl pb-5 pt-6'>{loadingRisk ? "..." : fireProbability}%</p>
-              <p className='text-md'>Fire Risk</p>
-            </div>
-            <div className='flex flex-col grow-1 px-2 py-4 bg-white rounded shadow-md items-center justify-between'>
-              <p className='text-5xl pb-5 pt-6'>{loadingFires ? "..." : nearbyFires}</p>
-              <p className='text-md'>Nearby Fires</p>
-            </div>
-          </div>
-        )} */}
         <input className="w-full bg-white text-black p-2 rounded shadow-md"
           placeholder='Enter Pincode'
           onChange={(e) => {
@@ -272,13 +269,15 @@ export default function Home() {
                 pathOptions={{ stroke: false, fillColor: 'red', fillOpacity: 0.4 }}
               >
                 <Tooltip>
-                  <span>Date: {point.acq_date}<br />Time: {String(Math.floor(point.acq_time / 100)).padStart(2, '0')}:{String(point.acq_time % 100).padStart(2, '0')}<br />Fire Radiative Power: {point.frp || 'N/A'}</span>
+                  <span className='text-base'>Date: {point.acq_date}<br />Time: {String(Math.floor(point.acq_time / 100)).padStart(2, '0')}:{String(point.acq_time % 100).padStart(2, '0')}<br />Fire Radiative Power: {point.frp || 'N/A'}</span>
                 </Tooltip>
               </CircleMarker>
             ))}
           </MapContainer>
 
-          <Dashboard aqi={aqi} risk={fireProbability} nearestFireDistance={nearestFireDistance} nearestFireDirection={nearestFireDirection} lastFireDaysAgo={lastFireDaysAgo} windSpeed={windSpeed} windDirection={windDirection} latitude={center[0]} longitude={center[1]} />
+          {dashboardVisible && (
+            <Dashboard aqi={aqi} risk={fireProbability} nearestFireDistance={nearestFireDistance} nearestFireDirection={nearestFireDirection} lastFireDaysAgo={lastFireDaysAgo} windSpeed={windSpeed} windDirection={windDirection} latitude={center[0]} longitude={center[1]} loadingAQI={loadingAQI} loadingFires={loadingFires} loadingRisk={loadingRisk} loadingLastFire={loadingLastFire} loadingWind={loadingWind} />
+          )}
         </>
       )}
     </div>

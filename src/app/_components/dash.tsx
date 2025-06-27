@@ -2,12 +2,14 @@
 
 import { useEffect, useState } from "react";
 
-export default function Dashboard({aqi, risk, nearestFireDistance, nearestFireDirection, lastFireDaysAgo, windSpeed, windDirection, latitude, longitude}: {aqi: number, risk: number, nearestFireDistance: number, nearestFireDirection: string, lastFireDaysAgo: number, windSpeed: number, windDirection: string, latitude: number, longitude: number}) {
+export default function Dashboard({aqi, risk, nearestFireDistance, nearestFireDirection, lastFireDaysAgo, windSpeed, windDirection, latitude, longitude, loadingAQI, loadingRisk, loadingFires, loadingLastFire, loadingWind}: {aqi: number, risk: number, nearestFireDistance: number, nearestFireDirection: string, lastFireDaysAgo: number, windSpeed: number, windDirection: string, latitude: number, longitude: number, loadingAQI: boolean, loadingRisk: boolean, loadingFires: boolean, loadingLastFire: boolean, loadingWind: boolean}) {
 
     const [input, setInput] = useState("");
     const [messages, setMessages] = useState<{ role: string, content: string }[]>([]);
     const [advice, setAdvice] = useState("");
     const [cause, setCause] = useState("");
+    const [loadingAdvice, setLoadingAdvice] = useState(true);
+    const [loadingCause, setLoadingCause] = useState(true);
 
     const aqiColors: { [key: number]: string } = {
         0: "text-green-500",
@@ -44,6 +46,7 @@ export default function Dashboard({aqi, risk, nearestFireDistance, nearestFireDi
     }
 
     useEffect(() => {
+        if (loadingAQI || loadingRisk || loadingFires || loadingLastFire || loadingWind) return;
         fetch('/api/advice', {
             method: 'POST',
             headers: {
@@ -64,6 +67,7 @@ export default function Dashboard({aqi, risk, nearestFireDistance, nearestFireDi
         .then(data => {
             const advice = data.advice;
             setAdvice(advice);
+            setLoadingAdvice(false);
         })
 
         fetch('/api/cause', {
@@ -86,8 +90,9 @@ export default function Dashboard({aqi, risk, nearestFireDistance, nearestFireDi
         .then(data => {
             const reason = data.reason;
             setCause(reason);
+            setLoadingCause(false);
         })
-    }, [])
+    }, [loadingAQI, loadingRisk, loadingFires, loadingLastFire, loadingWind])
 
     function smokeTowardOrAway(direction1: string, direction2: string): string {
         const directions = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
@@ -136,56 +141,46 @@ export default function Dashboard({aqi, risk, nearestFireDistance, nearestFireDi
         setMessages([...messages, { role: 'user', content: input }, { role: 'model', content: reply }]);
     }
 
+    const days = (num: number) => num <= 7 ? num : "7+";
+
   return (
     <div className="z-[999] flex flex-col justify-between h-11/12 max-h-11/12 w-full absolute top-0 right-0 p-2 rounded text-black">
       <div className="max-w-7xl mx-auto">
-        {/* Grid for cards */}
+
         <div className="grid gap-6 sm:grid-cols-4 lg:grid-cols-5 mb-8">
           
           {/* AQI Card */}
           <div className="bg-white shadow-md rounded-xl p-5">
             <h3 className="text-lg font-semibold mb-2">Current AQI</h3>
-            {/* <p className="text-4xl font-bold text-red-500">{aqi}</p> */}
-            <p className={`text-4xl font-bold ${aqiColors[(Math.floor(aqi / 50) <= 6 ? Math.floor(aqi / 50) : 6)]}`}>{aqi}</p>
+            <p className={`text-4xl font-bold ${aqiColors[(Math.floor(aqi / 50) <= 6 ? Math.floor(aqi / 50) : 6)]}`}>{loadingAQI ? "..." : aqi}</p>
             <p className="text-sm text-gray-500">{aqiText[(Math.floor(aqi / 50) <= 6 ? Math.floor(aqi / 50) : 6)]}</p>
           </div>
-            {/* <div className='flex flex-col grow-1 px-2 py-4 bg-white rounded shadow-md items-center justify-between'>
-                <p className='text-5xl pb-5 pt-6'>{loadingAQI ? "..." : aqi}</p>
-                <p className='text-5xl pb-5 pt-6'>122</p>
-                <p className='text-md'>AQI</p>
-            </div> */}
 
           {/* Fire Risk Card */}
           <div className="bg-white shadow-md rounded-xl p-5">
             <h3 className="text-lg font-semibold mb-2">Fire Risk</h3>
-            <p className={`text-4xl font-bold ${fireRiskColors[(Math.floor(risk / 25))]}`}>{fireRiskText[Math.floor(risk / 25)]}</p>
+            <p className={`text-4xl font-bold ${fireRiskColors[(Math.floor(risk / 25))]}`}>{loadingRisk ? "..." : fireRiskText[Math.floor(risk / 25)]}</p>
             <p className="text-sm text-gray-500">Based on AI weather model</p>
           </div>
-          {/* <div className='flex flex-col grow-1 px-2 py-4 bg-white rounded shadow-md items-center justify-between'>
-              <p className='relative w-full text-right pr-4 text-sm text-gray-500'>Predicted using AI</p>
-              <p className='text-5xl pb-5 pt-6'>{loadingRisk ? "..." : fireProbability}%</p>
-              <p className='text-5xl pb-5 pt-6'>10%</p>
-              <p className='text-md'>Fire Risk</p>
-            </div> */}
 
           {/* Nearest Fire Card */}
           <div className="bg-white shadow-md rounded-xl p-5">
             <h3 className="text-lg font-semibold mb-2">Nearest Fire</h3>
-            <p className="text-4xl font-bold text-gray-700">{Math.round(nearestFireDistance)} km</p>
-            <p className="text-sm text-gray-500">{nearestFireDirection}</p>
+            <p className="text-4xl font-bold text-gray-700">{loadingFires ? "..." : Math.round(nearestFireDistance)} km</p>
+            <p className="text-sm text-gray-500">{loadingFires ? "..." : nearestFireDirection}</p>
           </div>
 
           {/* Last Fire Card */}
           <div className="bg-white shadow-md rounded-xl p-5">
             <h3 className="text-lg font-semibold mb-2">Last Nearby Fire</h3>
-            <p className="text-3xl font-bold text-gray-700">{lastFireDaysAgo <= 7 ? lastFireDaysAgo : "7+"} Days Ago</p>
+            <p className="text-3xl font-bold text-gray-700">{loadingLastFire ? "..." : days(lastFireDaysAgo)} Days Ago</p>
             <p className="text-sm text-gray-500">Data by NASA</p>
           </div>
 
           {/* Wind Info Card */}
           <div className="bg-white shadow-md rounded-xl p-5">
             <h3 className="text-lg font-semibold mb-2">Wind</h3>
-            <p className="text-gray-700">{windSpeed} km/h {windDirection}</p>
+            <p className="text-gray-700">{loadingWind ? "..." : windSpeed} km/h {loadingWind ? "..." : windDirection}</p>
             <p className="text-sm text-gray-500">Carries smoke {smokeTowardOrAway(windDirection, nearestFireDirection)} your location</p>
           </div>
 
@@ -196,25 +191,19 @@ export default function Dashboard({aqi, risk, nearestFireDistance, nearestFireDi
           {/* Advice Card */}
           <div className="bg-white shadow-md rounded-xl p-5">
             <h3 className="text-lg font-semibold mb-2">Today's AI Advice</h3>
-            <p className="text-gray-700">{advice}</p>
+            <p className="text-gray-700">{loadingAdvice ? "Loading" : advice}</p>
           </div>
 
           {/* Cause Card */}
           <div className="bg-white shadow-md rounded-xl p-5">
             <h3 className="text-lg font-semibold mb-2">What's Causing This AQI?</h3>
-            <p className="text-gray-700">{cause}</p>
+            <p className="text-gray-700">{loadingCause ? "Loading..." : cause}</p>
           </div>
 
-          {/* AQI Trend Card (Placeholder) */}
-          {/* <div className="bg-white shadow-md rounded-xl p-5">
-            <h3 className="text-lg font-semibold mb-2">AQI Trend</h3>
-            <p className="text-gray-700">Past 3 days: 98 → 125 → 156</p>
-          </div> */}
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto w-full h-full overflow-y-auto">
-        {/* Chatbot section */}
         <div className="bg-white shadow-lg rounded-xl p-5 flex flex-col justify-between gap-2 h-full">
 
             {messages.length == 0 && (
