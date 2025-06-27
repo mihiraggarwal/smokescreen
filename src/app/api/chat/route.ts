@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
         parts: [{ text:
             `You are a helpful environmental assistant. The user is located at latitude ${latitude} and longitude ${longitude}. Their environment data:
             - Air Quality Index (AQI): ${aqi}
-            - Fire Risk: ${risk}
+            - Fire Risk: ${risk}%
             - Nearest Fire: ${Math.round(nearestFireDistance)} km ${nearestFireDirection}
             - Wind: ${windSpeed} km/h ${windDirection}
             

@@ -1,11 +1,13 @@
 'use client'
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function Dashboard({aqi, risk, nearestFireDistance, nearestFireDirection, lastFireDaysAgo, windSpeed, windDirection, latitude, longitude}: {aqi: number, risk: number, nearestFireDistance: number, nearestFireDirection: string, lastFireDaysAgo: number, windSpeed: number, windDirection: string, latitude: number, longitude: number}) {
 
     const [input, setInput] = useState("");
     const [messages, setMessages] = useState<{ role: string, content: string }[]>([]);
+    const [advice, setAdvice] = useState("");
+    const [cause, setCause] = useState("");
 
     const aqiColors: { [key: number]: string } = {
         0: "text-green-500",
@@ -40,6 +42,52 @@ export default function Dashboard({aqi, risk, nearestFireDistance, nearestFireDi
         2: "text-orange-500",
         3: "text-red-500"
     }
+
+    useEffect(() => {
+        fetch('/api/advice', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                aqi: aqi,
+                risk: risk,
+                nearestFireDistance: nearestFireDistance,
+                nearestFireDirection: nearestFireDirection,
+                windSpeed: windSpeed,
+                windDirection: windDirection,
+                latitude: latitude,
+                longitude: longitude
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            const advice = data.advice;
+            setAdvice(advice);
+        })
+
+        fetch('/api/cause', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                aqi: aqi,
+                risk: risk,
+                nearestFireDistance: nearestFireDistance,
+                nearestFireDirection: nearestFireDirection,
+                windSpeed: windSpeed,
+                windDirection: windDirection,
+                latitude: latitude,
+                longitude: longitude
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            const reason = data.reason;
+            setCause(reason);
+        })
+    }, [])
 
     function smokeTowardOrAway(direction1: string, direction2: string): string {
         const directions = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
@@ -147,14 +195,14 @@ export default function Dashboard({aqi, risk, nearestFireDistance, nearestFireDi
 
           {/* Advice Card */}
           <div className="bg-white shadow-md rounded-xl p-5">
-            <h3 className="text-lg font-semibold mb-2">Today's Advice</h3>
-            <p className="text-gray-700">Avoid outdoor activities between 2–5 PM due to expected pollution rise.</p>
+            <h3 className="text-lg font-semibold mb-2">Today's AI Advice</h3>
+            <p className="text-gray-700">{advice}</p>
           </div>
 
           {/* Cause Card */}
           <div className="bg-white shadow-md rounded-xl p-5">
             <h3 className="text-lg font-semibold mb-2">What's Causing This AQI?</h3>
-            <p className="text-gray-700">Smoke from crop burning</p>
+            <p className="text-gray-700">{cause}</p>
           </div>
 
           {/* AQI Trend Card (Placeholder) */}
@@ -165,13 +213,13 @@ export default function Dashboard({aqi, risk, nearestFireDistance, nearestFireDi
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto overflow-y-auto">
+      <div className="max-w-7xl mx-auto w-full h-full overflow-y-auto">
         {/* Chatbot section */}
         <div className="bg-white shadow-lg rounded-xl p-5 flex flex-col justify-between gap-2 h-full">
 
             {messages.length == 0 && (
                 <div className="flex flex-col">
-                    <h3 className="text-lg font-semibold mb-3">Chat with SmokeScreen</h3>
+                    <h3 className="text-lg font-semibold mb-3">Chat with SmokeScreen AI</h3>
                     <div className="text-sm text-gray-700 mb-2">You can ask questions like:</div>
                     <ul className="text-sm list-disc list-inside text-gray-600">
                         <li>What is AQI?</li>
