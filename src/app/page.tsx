@@ -12,8 +12,10 @@ import dayjs, { Dayjs } from 'dayjs';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import Modal from '@mui/material/Modal';
+import QuestionMarkIcon from '@mui/icons-material/QuestionMark';
 
 import Dashboard from './_components/dash'
+import HelpModal from './_components/help'
 
 const MapContainer = dynamic(() => import('react-leaflet').then(mod => mod.MapContainer), { ssr: false })
 const TileLayer = dynamic(() => import('react-leaflet').then(mod => mod.TileLayer), { ssr: false })
@@ -43,6 +45,7 @@ export default function Home() {
   const [calendarPoints, setCalendarPoints] = useState<any[]>([])
   const [calendarVisible, setCalendarVisible] = useState(false)
   const [selectedDate, setSelectedDate] = useState<Dayjs | null>(dayjs());
+  const [helpVisible, setHelpVisible] = useState(false)
 
   type csv = {
     latitude: string;
@@ -247,9 +250,9 @@ export default function Home() {
       <div className="absolute top-6 right-6 z-[1000] flex flex-col gap-4 rounded-full">
         <button
           className='bg-black text-white px-2.5 py-2.5 rounded-full hover:cursor-pointer'
-          onClick={() => {}}
+          onClick={() => setHelpVisible(!helpVisible)}
         >
-          <CalendarMonthIcon />
+          <QuestionMarkIcon />
         </button>
         <button
           className='bg-black text-white px-2.5 py-2.5 rounded-full hover:cursor-pointer'
@@ -260,6 +263,7 @@ export default function Home() {
           <CalendarMonthIcon />
         </button>
       </div>
+      <HelpModal open={helpVisible} onClose={() => setHelpVisible(false)} />
       {calendarVisible && (
           <Calendar />
       )}
