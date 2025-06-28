@@ -24,7 +24,7 @@ export default function Dashboard({aqi, risk, nearestFireDistance, nearestFireDi
     const aqiText: { [key: number]: string } = {
         0: "Good",
         1: "Moderate",
-        2: "Unhealthy for Sensitive Groups",
+        2: "Harmful for Sensitive Groups",
         3: "Unhealthy",
         4: "Very Unhealthy",
         5: "Very Unhealthy",
@@ -145,65 +145,65 @@ export default function Dashboard({aqi, risk, nearestFireDistance, nearestFireDi
 
   return (
     <div className="z-[999] flex flex-col justify-between h-11/12 max-h-11/12 w-full absolute top-0 right-0 p-2 rounded text-black">
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-5/6 mx-auto">
 
-        <div className="grid gap-6 sm:grid-cols-4 lg:grid-cols-5 mb-8">
+        <div className="grid gap-4 sm:grid-cols-4 lg:grid-cols-5 mb-4">
           
           {/* AQI Card */}
           <div className="bg-white shadow-md rounded-xl p-5">
-            <h3 className="text-lg font-semibold mb-2">Current AQI</h3>
-            <p className={`text-4xl font-bold ${aqiColors[(Math.floor(aqi / 50) <= 6 ? Math.floor(aqi / 50) : 6)]}`}>{loadingAQI ? "..." : aqi}</p>
-            <p className="text-sm text-gray-500">{aqiText[(Math.floor(aqi / 50) <= 6 ? Math.floor(aqi / 50) : 6)]}</p>
+            <h3 className="text-base font-semibold mb-2">Current AQI</h3>
+            <p className={`text-3xl font-bold ${aqiColors[(Math.floor(aqi / 50) <= 6 ? Math.floor(aqi / 50) : 6)]}`}>{loadingAQI ? "..." : aqi}</p>
+            <p className="text-xs text-gray-500">{aqiText[(Math.floor(aqi / 50) <= 6 ? Math.floor(aqi / 50) : 6)]}</p>
           </div>
 
           {/* Fire Risk Card */}
           <div className="bg-white shadow-md rounded-xl p-5">
-            <h3 className="text-lg font-semibold mb-2">Fire Risk</h3>
-            <p className={`text-4xl font-bold ${fireRiskColors[(Math.floor(risk / 25))]}`}>{loadingRisk ? "..." : fireRiskText[Math.floor(risk / 25)]}</p>
-            <p className="text-sm text-gray-500">Based on AI weather model</p>
+            <h3 className="text-base font-semibold mb-2">Fire Risk</h3>
+            <p className={`text-3xl font-bold ${fireRiskColors[(Math.floor(risk / 25))]}`}>{loadingRisk ? "..." : fireRiskText[Math.floor(risk / 25)]}</p>
+            <p className="text-xs text-gray-500">Based on AI weather model</p>
           </div>
 
           {/* Nearest Fire Card */}
           <div className="bg-white shadow-md rounded-xl p-5">
-            <h3 className="text-lg font-semibold mb-2">Nearest Fire</h3>
-            <p className="text-4xl font-bold text-gray-700">{loadingFires ? "..." : Math.round(nearestFireDistance)} km</p>
-            <p className="text-sm text-gray-500">{loadingFires ? "..." : nearestFireDirection}</p>
+            <h3 className="text-base font-semibold mb-2">Nearest Fire</h3>
+            <p className="text-3xl font-bold text-gray-700">{loadingFires ? "..." : Math.round(nearestFireDistance)} km</p>
+            <p className="text-xs text-gray-500">{loadingFires ? "..." : nearestFireDirection}</p>
           </div>
 
           {/* Last Fire Card */}
           <div className="bg-white shadow-md rounded-xl p-5">
-            <h3 className="text-lg font-semibold mb-2">Last Nearby Fire</h3>
-            <p className="text-3xl font-bold text-gray-700">{loadingLastFire ? "..." : days(lastFireDaysAgo)} Days Ago</p>
-            <p className="text-sm text-gray-500">Data by NASA</p>
+            <h3 className="text-base font-semibold mb-2">Last Nearby Fire</h3>
+            <p className="text-2xl font-bold text-gray-700">{loadingLastFire ? "..." : days(lastFireDaysAgo)} Days Ago</p>
+            <p className="text-xs text-gray-500">Data by NASA</p>
           </div>
 
           {/* Wind Info Card */}
           <div className="bg-white shadow-md rounded-xl p-5">
-            <h3 className="text-lg font-semibold mb-2">Wind</h3>
+            <h3 className="text-base font-semibold mb-2">Wind</h3>
             <p className="text-gray-700">{loadingWind ? "..." : windSpeed} km/h {loadingWind ? "..." : windDirection}</p>
-            <p className="text-sm text-gray-500">Carries smoke {smokeTowardOrAway(windDirection, nearestFireDirection)} your location</p>
+            <p className="text-xs text-gray-500">Carries smoke {smokeTowardOrAway(windDirection, nearestFireDirection)} your location</p>
           </div>
 
         </div>
 
-        <div className="grid gap-6 sm:grid-cols-1 lg:grid-cols-2 mb-8">
+        <div className="grid gap-6 sm:grid-cols-1 lg:grid-cols-2 mb-4">
 
           {/* Advice Card */}
           <div className="bg-white shadow-md rounded-xl p-5">
-            <h3 className="text-lg font-semibold mb-2">Today's AI Advice</h3>
-            <p className="text-gray-700">{loadingAdvice ? "Loading" : advice}</p>
+            <h3 className="text-base font-semibold mb-2">Today's AI Advice</h3>
+            <p className="text-gray-700 text-sm">{loadingAdvice ? "Loading" : advice}</p>
           </div>
 
           {/* Cause Card */}
           <div className="bg-white shadow-md rounded-xl p-5">
-            <h3 className="text-lg font-semibold mb-2">What's Causing This AQI?</h3>
-            <p className="text-gray-700">{loadingCause ? "Loading..." : cause}</p>
+            <h3 className="text-base font-semibold mb-2">What's Causing This AQI?</h3>
+            <p className="text-gray-700 text-sm">{loadingCause ? "Loading..." : cause}</p>
           </div>
 
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto w-full h-full overflow-y-auto">
+      <div className="max-w-5/6 mx-auto w-full h-full overflow-y-auto">
         <div className="bg-white shadow-lg rounded-xl p-5 flex flex-col justify-between gap-2 h-full">
 
             {messages.length == 0 && (
@@ -230,7 +230,7 @@ export default function Dashboard({aqi, risk, nearestFireDistance, nearestFireDi
             )}
 
             <div className="flex flex-row gap-4">
-                <input type="text" placeholder="Type your question here..." className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500" value={input} onChange={(e) => setInput(e.target.value)} />
+                <input type="text" placeholder="Type your question here..." className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" value={input} onChange={(e) => setInput(e.target.value)} />
                 <button className="px-4 py-2 bg-blue-500 text-white rounded hover:cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500" onClick={submit}>Send</button>
             </div>
 

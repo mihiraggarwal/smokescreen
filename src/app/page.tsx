@@ -199,9 +199,9 @@ export default function Home() {
         </button> */}
       </div>
       {(index === 1) && (
-        <div className="absolute bottom-4 right-4 z-[1000] flex flex-col gap-2 bg-white rounded-full shadow-md">
+        <div className="absolute bottom-6 right-6 z-[1000] flex flex-col gap-2 bg-white rounded-full shadow-md">
           <button
-            className='bg-blue-500 text-white rounded-full px-4 py-2 hover:cursor-pointer'
+            className='bg-blue-500 text-white rounded-full px-2.5 py-2.5 hover:cursor-pointer'
             onClick={() => {setDashboardVisible(!dashboardVisible)}}
           >
             <AppsIcon />
@@ -247,7 +247,7 @@ export default function Home() {
                 pathOptions={{ stroke: false, fillColor: 'red', fillOpacity: 0.4 }}
               >
                 <Tooltip>
-                  <span className='text-base'>Date: {point.acq_date}<br />Time: {String(Math.floor(point.acq_time / 100)).padStart(2, '0')}:{String(point.acq_time % 100).padStart(2, '0')}<br />Fire Radiative Power: {point.frp || 'N/A'}</span>
+                  <span className='text-sm'>Date: {point.acq_date}<br />Time: {String(Math.floor(point.acq_time / 100)).padStart(2, '0')}:{String(point.acq_time % 100).padStart(2, '0')}<br />Fire Radiative Power: {point.frp || 'N/A'}</span>
                 </Tooltip>
               </CircleMarker>
             ))}
@@ -269,7 +269,7 @@ export default function Home() {
                 pathOptions={{ stroke: false, fillColor: 'red', fillOpacity: 0.4 }}
               >
                 <Tooltip>
-                  <span className='text-base'>Date: {point.acq_date}<br />Time: {String(Math.floor(point.acq_time / 100)).padStart(2, '0')}:{String(point.acq_time % 100).padStart(2, '0')}<br />Fire Radiative Power: {point.frp || 'N/A'}</span>
+                  <span className='text-sm'>Date: {point.acq_date}<br />Time: {String(Math.floor(point.acq_time / 100)).padStart(2, '0')}:{String(point.acq_time % 100).padStart(2, '0')}<br />Fire Radiative Power: {point.frp || 'N/A'}</span>
                 </Tooltip>
               </CircleMarker>
             ))}
