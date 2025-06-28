@@ -186,12 +186,12 @@ export default function Dashboard({aqi, risk, nearestFireDistance, nearestFireDi
 
         </div>
 
-        <div className="grid gap-6 sm:grid-cols-1 lg:grid-cols-2 mb-4">
+        <div className="grid gap-4 sm:grid-cols-1 lg:grid-cols-2 mb-4">
 
           {/* Advice Card */}
           <div className="bg-white shadow-md rounded-xl p-5">
             <h3 className="text-base font-semibold mb-2">Today's AI Advice</h3>
-            <p className="text-gray-700 text-sm">{loadingAdvice ? "Loading" : advice}</p>
+            <p className="text-gray-700 text-sm">{loadingAdvice ? "Loading..." : advice}</p>
           </div>
 
           {/* Cause Card */}

@@ -42,6 +42,5 @@ next-env.d.ts
 
 /models/data
 /*/__pycache__
-/backend/saved
 /models/saved
 /models/train*

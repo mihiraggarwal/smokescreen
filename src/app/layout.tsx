@@ -5,7 +5,7 @@ import { Toaster } from "react-hot-toast";
 
 export const metadata: Metadata = {
   title: "SmokeScreen",
-  description: "Track wildfires & stubble burning in real-time, along with its impact on air quality.",
+  description: "Personal air and fire awareness dashboard"
 };
 
 export default function RootLayout({

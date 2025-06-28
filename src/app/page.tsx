@@ -279,7 +279,7 @@ export default function Home() {
       )}
       <div className='absolute flex flex-col gap-4 bottom-4 left-1/2 transform -translate-x-1/2 w-1/2 z-[1000]'>
         <input className="w-full bg-white text-black p-2 rounded shadow-md"
-          placeholder='Enter Pincode'
+          placeholder='Enter Pincode (India)'
           onChange={(e) => {
             const pin = e.target.value;
             if (pin.length === 6) {
