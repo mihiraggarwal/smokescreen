@@ -144,7 +144,7 @@ export default function Dashboard({aqi, risk, nearestFireDistance, nearestFireDi
     const days = (num: number) => num <= 7 ? num : "7+";
 
   return (
-    <div className="z-[999] flex flex-col justify-between h-11/12 max-h-11/12 w-full absolute top-0 right-0 p-2 rounded text-black">
+    <div className="z-[999] flex flex-col justify-between h-11/12 max-h-11/12 w-full absolute top-15 sm:top-0 right-0 p-2 rounded text-black overflow-auto">
       <div className="max-w-5/6 mx-auto">
 
         <div className="grid gap-4 sm:grid-cols-4 lg:grid-cols-5 mb-4">
@@ -203,7 +203,7 @@ export default function Dashboard({aqi, risk, nearestFireDistance, nearestFireDi
         </div>
       </div>
 
-      <div className="max-w-5/6 mx-auto w-full h-full overflow-y-auto">
+      <div className="max-w-5/6 mx-auto w-full h-full sm:overflow-y-auto">
         <div className="bg-white shadow-lg rounded-xl p-5 flex flex-col justify-between gap-2 h-full">
 
             {messages.length == 0 && (

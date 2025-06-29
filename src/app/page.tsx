@@ -213,6 +213,10 @@ export default function Home() {
   }
 
   const filterCalendarPoints = (date: Dayjs) => {
+    if (date.isSame(dayjs(), 'day')) {
+      setCalendarPoints([]);
+      return;
+    }
     const formattedDate = date.format('YYYY-MM-DD');
     const filteredPoints = allPoints.filter(point => point.acq_date == formattedDate);
     setCalendarPoints(filteredPoints);
@@ -277,7 +281,7 @@ export default function Home() {
           </button>
         </div>
       )}
-      <div className='absolute flex flex-col gap-4 bottom-4 left-1/2 transform -translate-x-1/2 w-1/2 z-[1000]'>
+      <div className='absolute flex flex-col gap-4 top-4 sm:top-auto sm:bottom-4 left-1/2 transform -translate-x-1/2 w-1/2 z-[1000]'>
         <input className="w-full bg-white text-black p-2 rounded shadow-md"
           placeholder='Enter Pincode (India)'
           onChange={(e) => {
