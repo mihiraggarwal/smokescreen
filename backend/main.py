@@ -69,7 +69,6 @@ def predict(data: InputData):
         weather_features = get_weather_features(data.latitude, data.longitude)
         rainfall = weather_features[0]
         temp = weather_features[1]
-        print(f"Rainfall: {rainfall}, Temperature: {temp}")
     except ValueError as e:
         return {"error": str(e)}
     
@@ -81,3 +80,7 @@ def predict(data: InputData):
     prob = float(prob)
     
     return {"fire_probability": prob, "wind_speed": weather_features[2], "wind_direction": weather_features[3]}
+
+@app.get("/")
+def root():
+    return "SmokeScreen"
