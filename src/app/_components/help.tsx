@@ -67,7 +67,7 @@ export default function HelpModal({ open, onClose }: HelpModalProps) {
         </div>
 
         <div className="mt-8 text-center text-base text-gray-500">
-          Created with <span className="text-red-500">&lt;3</span> by <a href="https://github.com/mihiraggarwal" target='_blank' className='underline text-blue-400'>Mihir Aggarwal</a>
+          Created with <span className="text-red-500">&lt;3</span> by <a href="https://mihiraggarwal.me" target='_blank' className='underline text-blue-400'>Mihir Aggarwal</a>
         </div>
       </Box>
     </Modal>
