@@ -1,36 +1,38 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# SmokeScreen
 
-## Getting Started
+SmokeScreen is a personal air and fire awareness dashboard. It shows you where fires are burning nearby, how they might affect your air quality, and what precautions you should take — all in real time.
 
-First, run the development server:
+## Why It Matters
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+Fires are one of the biggest contributors to air pollution — especially during harvest seasons in South Asia. But while AQI numbers are everywhere, fire data has remained hidden — locked behind satellite systems and technical dashboards most people never see.  
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+SmokeScreen changes that. It makes real-time fire data visible, understandable, and personal. You can finally see where fires are burning near you, how far they are, and whether you need to take precautions today.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Who This Is For
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+This platform is designed for everyday citizens, students, commuters, and health-conscious users who want to know: "What's burning near me?" and "Should I go outside today?"
 
-## Learn More
+## What It Does
 
-To learn more about Next.js, take a look at the following resources:
+- Shows active fire locations on a live map using NASA VIIRS satellite data
+- Fetches real-time AQI and displays localized air quality levels
+- Predicts fire risk in your area using a machine learning model trained on weather and satellite data
+- Explains the causes behind high AQI, such as wind direction or nearby fires
+- Gives actionable daily advice: whether to mask up, stay indoors, or enjoy clean air
+- Includes a conversational assistant to answer any further questions
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Where The Data Comes From
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- Fires: VIIRS satellite data from NASA FIRMS
+- AQI: Sourced from API Ninjas
+- Weather: Wind, rainfall, and temperature from Open-Meteo
+- Predictions: Trained XGBoost model using satellite + weather data
 
-## Deploy on Vercel
+## Tech Stack
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Frontend: Next.js, Typescript, Tailwind, Leaflet.js
+- Backend: FastAPI
+- ML Model: XGBoost
+- Feature Extraction: Google Earth Enging
+- LLM Integration: Google Generative AI API
+- Hosting: Vercel + Render
