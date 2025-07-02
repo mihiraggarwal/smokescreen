@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenAI } from "@google/genai";
 
 import 'dotenv/config';
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+const genAI = new GoogleGenAI({apiKey: process.env.GEMINI_API_KEY!});
 
 export async function POST(request: NextRequest) {
     const { messages, aqi, risk, nearestFireDistance, nearestFireDirection, windSpeed, windDirection, latitude, longitude } = await request.json();
@@ -26,13 +26,21 @@ export async function POST(request: NextRequest) {
         parts: [{text: message.content}]
     }));
 
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-    const chat = model.startChat({history: convertedMessages, systemInstruction: systemContext});
+    const chat = genAI.chats.create({
+        model: "gemini-2.5-flash",
+        history: convertedMessages,
+        config: {
+            systemInstruction: systemContext,
+            thinkingConfig: {
+                thinkingBudget: 0
+            }
+        }
+    });
 
     const userMessage = messages[messages.length - 1].content;
-    const result = await chat.sendMessage(userMessage);
+    const result = await chat.sendMessage({message: userMessage});
 
-    const response = await result.response.text();
+    const response = result.text;
 
     return NextResponse.json({ reply: response });
 }
