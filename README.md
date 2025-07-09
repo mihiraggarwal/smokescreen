@@ -33,6 +33,6 @@ This platform is designed for everyday citizens, students, commuters, and health
 - Frontend: Next.js, Typescript, Tailwind, Leaflet.js
 - Backend: FastAPI
 - ML Model: XGBoost
-- Feature Extraction: Google Earth Enging
+- Feature Extraction: Google Earth Engine
 - LLM Integration: Google Generative AI API
 - Hosting: Vercel + Render
